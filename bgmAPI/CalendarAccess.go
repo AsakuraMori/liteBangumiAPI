@@ -5,13 +5,22 @@ import (
 	"encoding/json"
 	"errors"
 	"io"
+	"net"
 	"net/http"
+	"strconv"
 	"time"
 )
 
 func SearchCalendar() ([]byte, error) {
+	listener, err := net.Listen("tcp", "127.0.0.1:0")
+	if err != nil {
+		return nil, err
+	}
+	defer listener.Close()
+	port := listener.Addr().(*net.TCPAddr).Port
+	str := strconv.Itoa(port)
 	server := &http.Server{
-		Addr: PortNumber,
+		Addr: ":" + str,
 	}
 	out := searchCalendar(server)
 	time.Sleep(1 * time.Second)

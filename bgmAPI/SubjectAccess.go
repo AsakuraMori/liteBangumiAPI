@@ -6,13 +6,22 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"net"
 	"net/http"
+	"strconv"
 	"time"
 )
 
 func SearchId(Id string) ([]byte, error) {
+	listener, err := net.Listen("tcp", "127.0.0.1:0")
+	if err != nil {
+		return nil, err
+	}
+	defer listener.Close()
+	port := listener.Addr().(*net.TCPAddr).Port
+	str := strconv.Itoa(port)
 	server := &http.Server{
-		Addr: PortNumber,
+		Addr: ":" + str,
 	}
 	out := searchId(server, Id)
 	time.Sleep(1 * time.Second)
