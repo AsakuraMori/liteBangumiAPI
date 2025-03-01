@@ -9,7 +9,6 @@ func main() {
 
 	bgmAPI.Token = "YOUR_TOKEN"    // 替换为你的 token
 	bgmAPI.UserAgent = "UserAgent" // 设置参考：https://github.com/bangumi/api/blob/master/docs-raw/user%20agent.md
-	bgmAPI.PortNumber = ":1010"
 
 	//所有接口返回的都是一个[]byte和一个err。[]byte是返回体，可以进行json解析，err表示错误，如果为nil，那么说明没有错误
 
