@@ -1,19 +1,20 @@
 package bgmAPI
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
 	"errors"
-	"fmt"
+	//"fmt"
 	"io"
 	"net"
 	"net/http"
-	"net/url"
+	//"net/url"
 	"strconv"
 	"time"
 )
 
-func SearchName(keyWord string, typeName string, max_results int64) ([]byte, error) {
+func SearchCharacters(keyWord string) ([]byte, error) {
 	listener, err := net.Listen("tcp", "127.0.0.1:0")
 	if err != nil {
 		return nil, err
@@ -24,7 +25,7 @@ func SearchName(keyWord string, typeName string, max_results int64) ([]byte, err
 	server := &http.Server{
 		Addr: ":" + str,
 	}
-	out := searhName(server, keyWord, typeName, max_results)
+	out := searhhCharacters(server, keyWord)
 	time.Sleep(1 * time.Second)
 
 	if len(out) == 0 {
@@ -35,7 +36,7 @@ func SearchName(keyWord string, typeName string, max_results int64) ([]byte, err
 	return out, nil
 
 }
-func searhName(server *http.Server, keyWord, typeName string, max_results int64) []byte {
+func searhhCharacters(server *http.Server, keyWord string) []byte {
 	go func() { // ListenAndServe是阻塞函数，要放在goroutine里跑
 		err := server.ListenAndServe()
 		if err != nil {
@@ -43,7 +44,7 @@ func searhName(server *http.Server, keyWord, typeName string, max_results int64)
 		}
 	}()
 
-	jsData, err := searchSubject(keyWord, typeName, max_results)
+	jsData, err := searchCharacters(keyWord)
 	if err != nil {
 		panic(err)
 		return nil
@@ -68,41 +69,26 @@ func searhName(server *http.Server, keyWord, typeName string, max_results int64)
 	}()
 	return jsonData
 }
-func searchSubject(keyWord, typeName string, max_results int64) (map[string]interface{}, error) {
+
+func searchCharacters(keyWord string) (map[string]interface{}, error) {
 	keyword := keyWord
-	if keyword == "" {
-		errMsg := errors.New("Keyword is required")
-		return nil, errMsg
+	// 构造请求体
+	requestBody := map[string]interface{}{
+		"keyword": keyword,
 	}
-
-	// 对关键词进行 URL 编码
-	encodedKeyword := url.QueryEscape(keyword)
-	sType := 0
-	switch typeName {
-	case "书籍":
-		sType = 1
-	case "动漫":
-		sType = 2
-	case "音乐":
-		sType = 3
-	case "游戏":
-		sType = 4
-	case "三次元":
-		sType = 6
-	default:
-		sType = 0
-	}
-	// 构建 Bangumi API 请求 URL
-	apiURL := fmt.Sprintf("%s%s?responseGroup=large&type=%d&max_results=%d", "https://api.bgm.tv/search/subject/", encodedKeyword, sType, max_results)
-	// 创建 HTTP 客户端
-	client := &http.Client{}
-
-	// 创建 HTTP 请求
-	req, err := http.NewRequest("GET", apiURL, nil)
+	jsonBody, err := json.Marshal(requestBody)
 	if err != nil {
 		return nil, err
 	}
 
+	// 创建 HTTP 客户端
+	client := &http.Client{}
+
+	// 创建 HTTP 请求
+	req, err := http.NewRequest("POST", "https://api.bgm.tv/v0/search/characters", bytes.NewBuffer(jsonBody))
+	if err != nil {
+		return nil, err
+	}
 	// 设置请求头
 	req.Header.Set("Authorization", "Bearer "+Token)
 	req.Header.Set("User-Agent", UserAgent)
@@ -116,7 +102,7 @@ func searchSubject(keyWord, typeName string, max_results int64) (map[string]inte
 
 	// 检查响应状态码
 	if resp.StatusCode != http.StatusOK {
-		errMsg := errors.New(string(resp.StatusCode))
+		errMsg := errors.New(strconv.Itoa(resp.StatusCode))
 		return nil, errMsg
 	}
 

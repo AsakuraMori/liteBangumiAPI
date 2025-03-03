@@ -12,7 +12,7 @@ import (
 	"time"
 )
 
-func SearchId(Id string) ([]byte, error) {
+func SearchSubjectId(Id string) ([]byte, error) {
 	listener, err := net.Listen("tcp", "127.0.0.1:0")
 	if err != nil {
 		return nil, err
@@ -23,7 +23,7 @@ func SearchId(Id string) ([]byte, error) {
 	server := &http.Server{
 		Addr: ":" + str,
 	}
-	out := searchId(server, Id)
+	out := searchSubjectId(server, Id)
 	time.Sleep(1 * time.Second)
 
 	if len(out) == 0 {
@@ -35,7 +35,7 @@ func SearchId(Id string) ([]byte, error) {
 
 }
 
-func searchId(server *http.Server, Id string) []byte {
+func searchSubjectId(server *http.Server, Id string) []byte {
 	go func() { // ListenAndServe是阻塞函数，要放在goroutine里跑
 		err := server.ListenAndServe()
 		if err != nil {
